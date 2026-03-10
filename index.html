@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>휴가원 및 훈련계 결재시스템</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <style>
+    :root { --primary-color: #006670; --secondary-color: #008489; --accent-color: #e6f7f8; --text-color: #2c3e50; --input-border: #cbd5e1; --white: #ffffff; --danger-color: #e74c3c; --blue-color: #3498db; }
+    body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background-image: url('https://newsx.ecn.cdn.infralab.net/www.whosaeng.com/imgdata/whosaeng_com/202211/2022112932303587.jpg'); background-size: cover; background-position: center; background-attachment: fixed; color: var(--text-color); display: flex; justify-content: center; align-items: center; }
+    .app-container { width: 100%; max-width: 420px; height: 95vh; margin: 10px; background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 24px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); overflow-y: auto; padding: 30px 25px; box-sizing: border-box; }
+    
+    .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+    .form-header h2 { color: var(--primary-color); margin: 0; font-size: 20px; text-align: center; flex: 1; }
+    .top-back-text { background: none; border: none; font-size: 22px; color: #64748b; cursor: pointer; padding: 0 10px 0 0; transition: 0.2s; font-weight: 900; }
+    
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 14px; color: #334155; }
+    .required::after { content: "*"; color: var(--danger-color); margin-left: 4px; }
+    .time-flex { display: flex; align-items: center; gap: 10px; }
+    input[type="date"], input[type="text"], input[type="email"], input[type="time"], select, input[type="file"] { width: 100%; padding: 14px; border: 1.5px solid var(--input-border); border-radius: 10px; box-sizing: border-box; font-size: 15px; font-family: inherit; background-color: #f8fafc; transition: all 0.2s; color: #0f172a; }
+    input:focus, select:focus { outline: none; border-color: var(--secondary-color); background-color: var(--white); box-shadow: 0 0 0 4px rgba(0, 132, 137, 0.1); }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .checkbox-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; }
+    .chk-label { display: flex; align-items: center; font-size: 13px; color: #334155; font-weight: 600; cursor: pointer; }
+    .chk-label input[type="radio"] { width: 18px; height: 18px; margin: 0 8px 0 0; cursor: pointer; }
+    
+    .submit-btn { width: 100%; padding: 16px; background-color: var(--primary-color); color: var(--white); border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0, 102, 112, 0.2); }
+    .submit-btn:hover { background-color: #004d55; transform: translateY(-2px); }
+    .home-return-btn { width: 100%; padding: 16px; background-color: var(--secondary-color); color: var(--white); border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 5px; transition: 0.3s; }
+
+    .workplace-group { display: flex; gap: 8px; margin-bottom: 15px; }
+    .wp-btn-app, .wp-btn-type { flex: 1; padding: 12px 0; text-align: center; background-color: #e2e8f0; color: #64748b; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+    .wp-btn-app.active, .wp-btn-type.active { background-color: var(--primary-color); color: var(--white); box-shadow: 0 4px 10px rgba(0, 102, 112, 0.2); }
+
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); backdrop-filter: blur(5px); z-index: 300; display: none; justify-content: center; align-items: center; flex-direction: column; }
+    .spinner { border: 4px solid #e2e8f0; width: 45px; height: 45px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s infinite; margin-bottom: 15px; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    .canvas-container { border: 1px solid #cbd5e1; border-radius: 10px; background-color: #fff; overflow: hidden; margin-top: 5px; position: relative; }
+    canvas { display: block; touch-action: none; width: 100%; height: 150px; cursor: crosshair; }
+    .clear-sign-btn { margin-top: 8px; padding: 8px 15px; background: #e2e8f0; border: none; border-radius: 6px; font-size: 12px; font-weight: 700; color: #475569; cursor: pointer; float: right; }
+    
+    .type-train { display: none; } 
+    .train-time-row { display:flex; align-items:center; gap:5px; margin-bottom:8px; font-size:13px; font-weight:600; color:#334155; }
+    .train-time-row input[type="time"] { padding: 8px; font-size: 13px; flex:1; }
+    .train-time-row input[type="text"] { padding: 8px; font-size: 13px; width: 70px; text-align:center; background:#e2e8f0; border:none; }
+  </style>
+</head>
+<body>
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><p style="color: #006670; font-weight: 700;">안전하게 처리 중입니다...</p></div>
+
+  <div class="app-container">
+      <div class="form-header">
+        <button type="button" class="top-back-text" onclick="history.back()">❮</button>
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <h2 style="margin-bottom:2px;">결재 상신</h2><span style="color:#64748b; font-size:12px; font-weight:600;">휴가원 및 훈련계</span>
+        </div>
+        <div style="width:22px;"></div>
+      </div>
+
+      <div class="workplace-group" style="margin-bottom: 10px;">
+        <button type="button" class="wp-btn-app active" onclick="selectAppWorkplace('본관', this)">본관</button>
+        <button type="button" class="wp-btn-app" onclick="selectAppWorkplace('전문병원', this)">전문병원</button>
+        <button type="button" class="wp-btn-app" onclick="selectAppWorkplace('암병원', this)">암병원</button>
+      </div>
+      <input type="hidden" id="appWorkplace" value="본관">
+
+      <div style="display:flex; gap:8px; margin-bottom:20px; background:#f1f5f9; padding:5px; border-radius:12px;">
+        <button type="button" id="btnTypeLeave" class="wp-btn-type active" style="background:#fff; color:var(--primary-color); box-shadow:0 2px 5px rgba(0,0,0,0.1);" onclick="toggleFormType('휴가원')">🌴 휴가원</button>
+        <button type="button" id="btnTypeTrain" class="wp-btn-type" style="background:transparent;" onclick="toggleFormType('훈련계')">🪖 훈련계</button>
+      </div>
+      <input type="hidden" id="activeFormType" value="휴가원">
+
+      <form id="form6" autocomplete="off">
+        <div class="form-group">
+          <label>1. 인적사항</label>
+          <input type="text" id="dept6" value="메디칼본부 연세대세브란스" style="margin-bottom:10px; background-color:#e2e8f0;" readonly>
+          <div class="grid-2">
+            <input type="text" id="worker6" class="save-state" placeholder="성명" required>
+            <select id="position6" class="save-state" required onchange="updateApprovers()">
+              <option value="SE사원" selected>SE사원</option><option value="SE주임">SE주임</option><option value="SE팀장">SE팀장</option>
+            </select>
+            <input type="text" id="empId6" class="save-state" placeholder="사번 (예: 082848)" required>
+            <input type="email" id="workerEmail6" class="save-state" placeholder="본인 이메일" required>
+          </div>
+        </div>
+
+        <div class="type-leave">
+          <div class="form-group">
+            <label class="required">2. 휴가종류 선택</label>
+            <div class="checkbox-grid">
+              <label class="chk-label"><input type="radio" name="leaveType" value="년월차" checked> 년월차</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="반월차"> 반월차</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="경조휴가"> 경조</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="하계휴가"> 하계</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="보건휴가"> 보건</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="특별휴가"> 특별</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="공가"> 공가</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="기타"> 기타</label>
+            </div>
+            <input type="text" id="customLeaveType" class="save-state" placeholder="기타 사유" style="display:none; margin-top:10px;">
+          </div>
+        </div>
+
+        <div class="type-train">
+          <div class="form-group">
+            <label class="required">2. 훈련종류 선택</label>
+            <select id="trainTypeSelect" class="save-state">
+              <option value="" disabled selected>훈련 종류를 선택하세요</option>
+              <option value="소집훈련">소집훈련</option>
+              <option value="예비군훈련(출/퇴근)">예비군훈련 (출/퇴근)</option>
+              <option value="동원훈련(출/퇴근)">동원훈련 (출/퇴근)</option>
+              <option value="동원훈련(합숙)">동원훈련 (합숙)</option>
+              <option value="직접입력">직접입력</option>
+            </select>
+            <input type="text" id="customTrainType" placeholder="훈련 종류 직접입력" style="display:none; margin-top:10px;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="required" id="labelDuration">3. 휴가기간 (기간 자동계산 / 앞뒤 3주 제한)</label>
+          <div class="time-flex"><input type="date" id="leaveStart6" required> <span>~</span> <input type="date" id="leaveEnd6" required></div>
+        </div>
+
+        <div class="form-group type-leave">
+          <label class="required">4. 비상연락망 (H.P)</label>
+          <input type="text" id="contact6" class="save-state" placeholder="예: 010-1234-5678">
+        </div>
+
+        <div class="type-train">
+          <div class="form-group">
+            <label>4. 훈련시간 입력 (선택사항 / 자동계산)</label>
+            <div class="train-time-row">1일차 <input type="time" id="tr_st1" onchange="calcTime(1)">~<input type="time" id="tr_en1" onchange="calcTime(1)"><input type="text" id="tr_hr1" placeholder="0시간" readonly></div>
+            <div class="train-time-row">2일차 <input type="time" id="tr_st2" onchange="calcTime(2)">~<input type="time" id="tr_en2" onchange="calcTime(2)"><input type="text" id="tr_hr2" placeholder="0시간" readonly></div>
+            <div class="train-time-row">3일차 <input type="time" id="tr_st3" onchange="calcTime(3)">~<input type="time" id="tr_en3" onchange="calcTime(3)"><input type="text" id="tr_hr3" placeholder="0시간" readonly></div>
+            <div class="train-time-row">4일차 <input type="time" id="tr_st4" onchange="calcTime(4)">~<input type="time" id="tr_en4" onchange="calcTime(4)"><input type="text" id="tr_hr4" placeholder="0시간" readonly></div>
+          </div>
+          <div class="form-group">
+            <label class="required">4-1. 훈련 필증 첨부 (다중선택 가능)</label>
+            <input type="file" id="certFile" accept="image/*" multiple>
+            <p style="font-size: 11px; color: var(--primary-color); margin-top: 6px;">* 메일 및 PDF에 자동 첨부됩니다.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="required">5. 결재선 지정</label>
+          <select id="approver1_6" class="save-state" required style="margin-bottom:10px;"></select>
+          <div id="app2_wrapper"><select id="approver2_6" class="save-state"></select></div>
+        </div>
+
+        <div class="form-group" style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0; font-size:14px; font-weight:600; color:#334155; line-height:1.6;">
+          상기 내용과 같이 
+          <span id="dynamicFormTypeSpan">
+            <select id="leaveFormType" class="save-state" style="width:100px; padding:6px; border-radius:6px; border:1px solid #cbd5e1; font-size:14px; margin:0 5px;">
+              <option value="휴가">휴가</option>
+              <option value="년차">년차</option>
+              <option value="반차">반차</option>
+              <option value="경조">경조</option>
+              <option value="하계">하계</option>
+              <option value="보건">보건</option>
+              <option value="특별">특별</option>
+              <option value="공가">공가</option>
+              <option value="기타">기타</option>
+            </select>
+          </span>
+          <span id="staticFormTypeSpan" style="display:none; color:var(--primary-color); font-weight:800; margin:0 5px;">훈련계</span>
+          원을 제출하오니 결재하여 주시기 바랍니다.
+        </div>
+
+        <div class="form-group">
+          <label class="required">6. 기안자 본인 서명</label>
+          <div class="canvas-container"><canvas id="signaturePad"></canvas></div>
+          <button type="button" class="clear-sign-btn" onclick="clearSignature()">지우고 다시 서명하기</button>
+          <div style="clear:both;"></div>
+        </div>
+
+        <div id="actionArea6" style="margin-top:10px;"><button type="submit" class="submit-btn" id="btnSubmit6">휴가원 기안 상신하기</button></div>
+        <div id="successArea6" style="display:none;"><button type="button" class="home-return-btn" onclick="history.back()">홈으로 돌아가기</button></div>
+      </form>
+  </div>
+
+  <script>
+    // ★ 지정해주신 새로운 휴가원 전용 구글 앱스 스크립트 주소 적용 완료 ★
+    const POST_URL = 'https://script.google.com/macros/s/AKfycbySR8UbqpIPJwPo3XC97FnNNExVHJgxCz8wt7s_0Hl9Uz_OlamISB9k5fY4e2KPfyvtpw/exec';
+    
+    const approversData = {
+      '본관': {
+        '주임': [
+          {name: '최대근 주임', email: 'choi@s-tec.co.kr'}, {name: '김재욱 주임', email: 'kimjw@s-tec.co.kr'},
+          {name: '김기헌 주임', email: 'kimgh@s-tec.co.kr'}, {name: '조주현 주임', email: 'ASURADA@s-tec.co.kr'},
+          {name: '김창훈 주임', email: 'kimch@s-tec.co.kr'}, {name: '손경훈 주임', email: 'son4487@gmail.com'},
+          {name: '정우진 주임', email: 'jungwj@s-tec.co.kr'}, {name: '박성민 주임', email: 'parksm@s-tec.co.kr'}
+        ],
+        '팀장': [
+          {name: '조경남 팀장', email: 'whrudska828@s-tec.co.kr'}, {name: '이석인 팀장', email: 'yiseokin1@naver.com'},
+          {name: '권기헌 팀장', email: 'kkh93182028@naver.com'}, {name: '김태영 팀장', email: '4044441@hanmail.net'},
+          {name: '서성태 팀장', email: 'seost@s-tec.co.kr'}
+        ]
+      },
+      '전문병원': {
+        '주임': [
+          {name: '이준곤 주임', email: 'gon0991@gmail.com'}, {name: '조세운 주임', email: 'joseun@naver.com'},
+          {name: '최세황 주임', email: 'sevarians@naver.com'}, {name: '박재형 주임', email: 'kingbed@naver.com'},
+          {name: '박효준 주임', email: 'hunterzerg@naver.com'}
+        ],
+        '팀장': [
+          {name: '한현식 팀장', email: 'amazozlove@naver.com'}, {name: '최시영 팀장', email: 'goro@naver.com'}
+        ]
+      },
+      '암병원': {
+        '주임': [
+          {name: '문원철 주임', email: 'moonwc@s-tec.co.kr'},
+          {name: '박강우 주임', email: 'parkgw@s-tec.co.kr'}, {name: '김광환 주임', email: 'kimgh2@s-tec.co.kr'},
+          {name: '정지연 주임', email: 'jungjy@s-tec.co.kr'}, {name: '홍세화 주임', email: 'hongsh@s-tec.co.kr'}
+        ],
+        '팀장': [
+          {name: '김형진 팀장', email: 'victory80@s-tec.co.kr'}
+        ]
+      }
+    };
+    
+    const headData = {name: '백만호 실장', email: 'vkorean@s-tec.co.kr,vkorean@naver.com'};
+    const testUser = {name: '연습주임', email: 'vkorean.b@gmail.com'};
+
+    function updateApprovers() {
+      const wp = document.getElementById('appWorkplace').value;
+      const pos = document.getElementById('position6').value;
+      const app1 = document.getElementById('approver1_6');
+      const app2 = document.getElementById('approver2_6');
+      const app2Wrap = document.getElementById('app2_wrapper');
+      
+      if (pos === 'SE사원') {
+         app1.innerHTML = '<option value="" disabled selected>1차 결재자 선택</option>';
+         app2.innerHTML = '<option value="" disabled selected>2차 결재자 선택</option>';
+         app2Wrap.style.display = 'block'; app2.required = true;
+         
+         approversData[wp]['주임'].forEach(a => app1.add(new Option(a.name, a.email)));
+         approversData[wp]['팀장'].forEach(a => app1.add(new Option(a.name, a.email)));
+         app1.add(new Option(headData.name, headData.email));
+         app1.add(new Option(testUser.name, testUser.email));
+         
+         approversData[wp]['팀장'].forEach(a => app2.add(new Option(a.name, a.email)));
+         app2.add(new Option(headData.name, headData.email));
+         app2.add(new Option(testUser.name, testUser.email));
+      } else if (pos === 'SE주임') {
+         app1.innerHTML = '<option value="" disabled selected>1차 결재자 선택</option>';
+         app2.innerHTML = '<option value="" disabled selected>2차 결재자 선택</option>';
+         app2Wrap.style.display = 'block'; app2.required = true;
+         
+         approversData[wp]['팀장'].forEach(a => app1.add(new Option(a.name, a.email)));
+         app1.add(new Option(headData.name, headData.email));
+         app1.add(new Option(testUser.name, testUser.email));
+         
+         app2.add(new Option(headData.name, headData.email));
+         app2.add(new Option(testUser.name, testUser.email));
+      } else if (pos === 'SE팀장') {
+         app1.innerHTML = '';
+         app2Wrap.style.display = 'none'; app2.required = false;
+         app1.add(new Option(headData.name, headData.email));
+         app1.add(new Option(testUser.name, testUser.email));
+      }
+    }
+
+    function selectAppWorkplace(wp, btnElement) {
+      document.getElementById('appWorkplace').value = wp;
+      document.querySelectorAll('.wp-btn-app').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+      updateApprovers();
+    }
+
+    function toggleFormType(type) {
+      document.getElementById('activeFormType').value = type;
+      const btnLeave = document.getElementById('btnTypeLeave');
+      const btnTrain = document.getElementById('btnTypeTrain');
+      
+      if (type === '휴가원') {
+        btnLeave.style.background = '#fff'; btnLeave.style.color = 'var(--primary-color)'; btnLeave.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+        btnTrain.style.background = 'transparent'; btnTrain.style.color = '#64748b'; btnTrain.style.boxShadow = 'none';
+        
+        document.querySelectorAll('.type-leave').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.type-train').forEach(el => el.style.display = 'none');
+        document.getElementById('contact6').required = true;
+        document.getElementById('certFile').required = false;
+        
+        document.getElementById('dynamicFormTypeSpan').style.display = 'inline-block';
+        document.getElementById('staticFormTypeSpan').style.display = 'none';
+        
+        document.getElementById('labelDuration').innerText = '3. 휴가기간 (기간 자동계산 / 앞뒤 3주 제한)';
+        document.getElementById('btnSubmit6').innerText = '휴가원 기안 상신하기';
+      } else {
+        btnTrain.style.background = '#fff'; btnTrain.style.color = 'var(--primary-color)'; btnTrain.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+        btnLeave.style.background = 'transparent'; btnLeave.style.color = '#64748b'; btnLeave.style.boxShadow = 'none';
+        
+        document.querySelectorAll('.type-leave').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.type-train').forEach(el => el.style.display = 'block');
+        document.getElementById('contact6').required = false;
+        document.getElementById('certFile').required = true;
+        
+        document.getElementById('dynamicFormTypeSpan').style.display = 'none';
+        document.getElementById('staticFormTypeSpan').style.display = 'inline-block';
+        
+        document.getElementById('labelDuration').innerText = '3. 훈련기간 (앞뒤 3주 제한)';
+        document.getElementById('btnSubmit6').innerText = '훈련계 기안 상신하기';
+      }
+    }
+
+    function calcTime(idx) {
+        let st = document.getElementById('tr_st'+idx).value;
+        let en = document.getElementById('tr_en'+idx).value;
+        if(st && en) {
+            let stD = new Date("1970-01-01T" + st + "Z");
+            let enD = new Date("1970-01-01T" + en + "Z");
+            let diffMs = enD - stD;
+            if(diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
+            let hrs = diffMs / (1000 * 60 * 60);
+            document.getElementById('tr_hr'+idx).value = hrs.toFixed(1) + "시간";
+        } else {
+            document.getElementById('tr_hr'+idx).value = "";
+        }
+    }
+
+    const canvas = document.getElementById('signaturePad');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width; canvas.height = 120;
+      ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#0f172a';
+    }
+
+    function startDrawing(e) { isDrawing = true; draw(e); }
+    function stopDrawing() { isDrawing = false; ctx.beginPath(); }
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      let clientX = e.clientX, clientY = e.clientY;
+      if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+      ctx.lineTo(clientX - rect.left, clientY - rect.top);
+      ctx.stroke(); ctx.beginPath(); ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    }
+    
+    canvas.addEventListener('mousedown', startDrawing); canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing); canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener('touchstart', startDrawing, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stopDrawing);
+    function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+    window.addEventListener('load', () => {
+      setTimeout(resizeCanvas, 100);
+      document.querySelectorAll('.save-state').forEach(el => { const savedVal = localStorage.getItem('as_' + el.id); if(savedVal) { el.value = savedVal; if(el.tagName === 'SELECT') el.dispatchEvent(new Event('change')); } el.addEventListener('input', () => localStorage.setItem('as_' + el.id, el.value)); el.addEventListener('change', () => localStorage.setItem('as_' + el.id, el.value)); });
+      
+      const now = new Date();
+      const toDateString = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const minDate = new Date(now); minDate.setDate(minDate.getDate() - 21);
+      const maxDate = new Date(now); maxDate.setDate(maxDate.getDate() + 21);
+      
+      const leaveStartEl = document.getElementById('leaveStart6');
+      const leaveEndEl = document.getElementById('leaveEnd6');
+      leaveStartEl.min = toDateString(minDate); leaveStartEl.max = toDateString(maxDate);
+      leaveEndEl.min = toDateString(minDate); leaveEndEl.max = toDateString(maxDate);
+
+      if(!leaveStartEl.value) { const d = toDateString(now); leaveStartEl.value = d; leaveEndEl.value = d; }
+      updateApprovers(); 
+    });
+
+    document.querySelectorAll('input[name="leaveType"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const customInput = document.getElementById('customLeaveType');
+        if (this.value === '기타') { customInput.style.display = 'block'; customInput.required = true; } 
+        else { customInput.style.display = 'none'; customInput.required = false; }
+      });
+    });
+
+    document.getElementById('trainTypeSelect').addEventListener('change', function() { document.getElementById('customTrainType').style.display = this.value === '직접입력' ? 'block' : 'none'; });
+
+    const mergeImages = (fileInput) => new Promise(async (resolve) => {
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) { resolve(null); return; }
+        let images = [];
+        for(let i=0; i<fileInput.files.length; i++) {
+            let img = new Image();
+            await new Promise(r => { img.onload = r; img.onerror = r; img.src = URL.createObjectURL(fileInput.files[i]); });
+            images.push(img);
+        }
+        let totalH = 0, maxW = 0;
+        images.forEach(img => {
+            let w = img.width || 0, h = img.height || 0;
+            if(w > 800) { h = Math.round(h * 800/w); w = 800; }
+            totalH += h; if(w > maxW) maxW = w;
+            img.calcW = w; img.calcH = h;
+        });
+        const mCanvas = document.createElement('canvas');
+        mCanvas.width = maxW; mCanvas.height = totalH;
+        const mCtx = mCanvas.getContext('2d');
+        mCtx.fillStyle = '#ffffff'; mCtx.fillRect(0,0,maxW,totalH);
+        let curY = 0;
+        images.forEach(img => { mCtx.drawImage(img, 0, curY, img.calcW, img.calcH); curY += img.calcH; });
+        resolve(mCanvas.toDataURL('image/jpeg', 0.7));
+    });
+
+    document.getElementById('form6').addEventListener('submit', async function(e) { 
+      e.preventDefault(); 
+      document.getElementById('loadingOverlay').style.display = 'flex'; 
+      
+      try {
+          const blankCanvas = document.createElement('canvas');
+          blankCanvas.width = canvas.width; blankCanvas.height = canvas.height;
+          if (canvas.toDataURL() === blankCanvas.toDataURL()) { 
+              alert("본인 서명을 입력해주세요."); 
+              document.getElementById('loadingOverlay').style.display = 'none'; 
+              return; 
+          }
+          const signatureImage = canvas.toDataURL('image/png');
+
+          const isTrain = document.getElementById('activeFormType').value === '훈련계';
+          const pos = document.getElementById('position6').value;
+          const app1 = document.getElementById('approver1_6');
+          const app2 = document.getElementById('approver2_6');
+          
+          let finalType = "", finalTimeOrContact = "";
+          let mergedCertData = null;
+
+          if (isTrain) {
+              finalType = document.getElementById('trainTypeSelect').value;
+              if (finalType === '직접입력') finalType = document.getElementById('customTrainType').value;
+              
+              let tArr = [];
+              for(let i=1; i<=4; i++) {
+                  let st = document.getElementById('tr_st'+i).value; let en = document.getElementById('tr_en'+i).value; let hr = document.getElementById('tr_hr'+i).value;
+                  if(st || en || hr) tArr.push(`${i}일차: ${st}~${en} (${hr})`);
+              }
+              finalTimeOrContact = tArr.join("\n");
+              
+              mergedCertData = await mergeImages(document.getElementById('certFile'));
+              if(!mergedCertData) { 
+                  alert("훈련 필증을 첨부해주세요."); 
+                  document.getElementById('loadingOverlay').style.display = 'none'; 
+                  return; 
+              }
+          } else {
+              let checkedType = document.querySelector('input[name="leaveType"]:checked');
+              finalType = checkedType ? checkedType.value : '기타';
+              if (finalType === '기타') finalType = "기타(" + document.getElementById('customLeaveType').value + ")";
+              finalTimeOrContact = document.getElementById('contact6').value;
+          }
+
+          const data = { 
+            action: 'insert', sheetName: isTrain ? '훈련계' : '휴가원', uuid: Date.now().toString(36), 
+            dept: document.getElementById('dept6').value, worker: document.getElementById('worker6').value, 
+            empId: document.getElementById('empId6').value, position: pos, workerEmail: document.getElementById('workerEmail6').value,
+            leaveType: finalType, leaveStart: document.getElementById('leaveStart6').value, leaveEnd: document.getElementById('leaveEnd6').value,
+            contact: finalTimeOrContact, leaveFormType: isTrain ? '훈련계' : document.getElementById('leaveFormType').value,
+            app1Email: app1.value || '', 
+            app1Name: (app1.selectedIndex >= 0) ? app1.options[app1.selectedIndex].text : '',
+            app2Email: pos === 'SE팀장' ? '' : (app2.value || ''), 
+            app2Name: pos === 'SE팀장' ? '' : ((app2.selectedIndex >= 0) ? app2.options[app2.selectedIndex].text : ''),
+            signData: signatureImage, certData: mergedCertData
+          };
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 20000); 
+          
+          await fetch(POST_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data), signal: controller.signal }); 
+          clearTimeout(timeoutId);
+          
+          alert(data.sheetName + ' 상신 완료!');
+          document.getElementById('actionArea6').style.display = 'none'; document.getElementById('successArea6').style.display = 'block';
+          this.reset(); clearSignature();
+          
+          const today = new Date();
+          const d = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+          document.getElementById('leaveStart6').value = d; document.getElementById('leaveEnd6').value = d;
+      } catch (error) { 
+          alert('전송 지연 또는 내부 오류가 발생했습니다.\n에러 내용: ' + error.message); 
+      } finally { document.getElementById('loadingOverlay').style.display = 'none'; }
+    });
+  </script>
+</body>
+</html>
