@@ -92,8 +92,8 @@
           <div class="form-group">
             <label class="required">2. 휴가종류 선택</label>
             <div class="checkbox-grid">
-              <label class="chk-label"><input type="radio" name="leaveType" value="년월차" checked> 년월차</label>
-              <label class="chk-label"><input type="radio" name="leaveType" value="반월차"> 반월차</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="년차" checked> 년차</label>
+              <label class="chk-label"><input type="radio" name="leaveType" value="반차"> 반차</label>
               <label class="chk-label"><input type="radio" name="leaveType" value="경조휴가"> 경조</label>
               <label class="chk-label"><input type="radio" name="leaveType" value="하계휴가"> 하계</label>
               <label class="chk-label"><input type="radio" name="leaveType" value="보건휴가"> 보건</label>
@@ -183,20 +183,27 @@
   </div>
 
   <script>
-    // ★ 지정해주신 새로운 휴가원 전용 구글 앱스 스크립트 주소 적용 완료 ★
+    // ★ 지정하신 구글 스크립트 주소 (변경 금지) ★
     const POST_URL = 'https://script.google.com/macros/s/AKfycbySR8UbqpIPJwPo3XC97FnNNExVHJgxCz8wt7s_0Hl9Uz_OlamISB9k5fY4e2KPfyvtpw/exec';
     
+    // ★ 결재선 명단 완벽 유지 ★
     const approversData = {
       '본관': {
         '주임': [
-          {name: '최대근 주임', email: 'choi@s-tec.co.kr'}, {name: '김재욱 주임', email: 'kimjw@s-tec.co.kr'},
-          {name: '김기헌 주임', email: 'kimgh@s-tec.co.kr'}, {name: '조주현 주임', email: 'ASURADA@s-tec.co.kr'},
-          {name: '김창훈 주임', email: 'kimch@s-tec.co.kr'}, {name: '손경훈 주임', email: 'son4487@gmail.com'},
-          {name: '정우진 주임', email: 'jungwj@s-tec.co.kr'}, {name: '박성민 주임', email: 'parksm@s-tec.co.kr'}
+          {name: '조주현 주임', email: 'asurada@s-tec.co.kr'},
+          {name: '김창훈 주임', email: 'radins7@s-tec.co.kr'},
+          {name: '손경훈 주임', email: 'son4487@gmail.com'},
+          {name: '박성민 주임', email: 'opening90@daum.net'},
+          {name: '정우진 주임', email: 'dnwls6303@naver.com'},
+          {name: '김재욱 주임', email: 'hopekim1012@naver.com'},
+          {name: '김기헌 주임', email: 'bblackmars@gmail.com'},
+          {name: '선호진 주임', email: 'post3268@gmail.com'}
         ],
         '팀장': [
-          {name: '조경남 팀장', email: 'whrudska828@s-tec.co.kr'}, {name: '이석인 팀장', email: 'yiseokin1@naver.com'},
-          {name: '권기헌 팀장', email: 'kkh93182028@naver.com'}, {name: '김태영 팀장', email: '4044441@hanmail.net'},
+          {name: '조경남 팀장', email: 'whrudska828@s-tec.co.kr'},
+          {name: '권기현 팀장', email: 'kkh93182028@naver.com'},
+          {name: '이석인 팀장', email: 'yiseokin1@naver.com'},
+          {name: '김태영 팀장', email: '4044441@hanmail.net'},
           {name: '서성태 팀장', email: 'seost@s-tec.co.kr'}
         ]
       },
@@ -212,9 +219,12 @@
       },
       '암병원': {
         '주임': [
+          {name: '최대근 주임', email: 'worstkillerc@naver.com'},
           {name: '문원철 주임', email: 'moonwc@s-tec.co.kr'},
-          {name: '박강우 주임', email: 'parkgw@s-tec.co.kr'}, {name: '김광환 주임', email: 'kimgh2@s-tec.co.kr'},
-          {name: '정지연 주임', email: 'jungjy@s-tec.co.kr'}, {name: '홍세화 주임', email: 'hongsh@s-tec.co.kr'}
+          {name: '박강우 주임', email: 'parkgw@s-tec.co.kr'}, 
+          {name: '김광환 주임', email: 'kimgh2@s-tec.co.kr'},
+          {name: '정지연 주임', email: 'jungjy@s-tec.co.kr'}, 
+          {name: '홍세화 주임', email: 'hongsh@s-tec.co.kr'}
         ],
         '팀장': [
           {name: '김형진 팀장', email: 'victory80@s-tec.co.kr'}
@@ -367,11 +377,25 @@
       updateApprovers(); 
     });
 
+    // ★ 수정사항 6: 휴가 종류 라디오 버튼 클릭 시 하단 서약서 콤보박스 자동 변경 ★
     document.querySelectorAll('input[name="leaveType"]').forEach(radio => {
       radio.addEventListener('change', function() {
         const customInput = document.getElementById('customLeaveType');
         if (this.value === '기타') { customInput.style.display = 'block'; customInput.required = true; } 
         else { customInput.style.display = 'none'; customInput.required = false; }
+
+        const formTypeSel = document.getElementById('leaveFormType');
+        let targetVal = this.value;
+        if (targetVal.includes('년차')) targetVal = '년차';
+        if (targetVal.includes('반차')) targetVal = '반차';
+        if (targetVal.includes('경조')) targetVal = '경조';
+        if (targetVal.includes('하계')) targetVal = '하계';
+        if (targetVal.includes('보건')) targetVal = '보건';
+        if (targetVal.includes('특별')) targetVal = '특별';
+        if (targetVal.includes('공가')) targetVal = '공가';
+        
+        const opt = Array.from(formTypeSel.options).find(o => o.value === targetVal);
+        if (opt) formTypeSel.value = opt.value;
       });
     });
 
@@ -458,7 +482,7 @@
             app2Email: pos === 'SE팀장' ? '' : (app2.value || ''), 
             app2Name: pos === 'SE팀장' ? '' : ((app2.selectedIndex >= 0) ? app2.options[app2.selectedIndex].text : ''),
             signData: signatureImage, certData: mergedCertData
-          };
+          }; 
           
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 20000); 
