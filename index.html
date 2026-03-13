@@ -81,7 +81,7 @@
           <div class="grid-2">
             <input type="text" id="worker6" class="save-state" placeholder="성명" required>
             <select id="position6" class="save-state" required onchange="updateApprovers()">
-              <option value="SE사원" selected>SE사원</option><option value="SE주임">SE주임</option><option value="SE팀장">SE팀장</option>
+              <option value="사원" selected>사원</option><option value="주임">주임</option><option value="팀장">팀장</option>
             </select>
             <input type="text" id="empId6" class="save-state" placeholder="사번 (예: 082848)" required>
             <input type="email" id="workerEmail6" class="save-state" placeholder="본인 이메일" required>
@@ -242,7 +242,7 @@
       const app2 = document.getElementById('approver2_6');
       const app2Wrap = document.getElementById('app2_wrapper');
       
-      if (pos === 'SE사원') {
+      if (pos === '사원') {
          app1.innerHTML = '<option value="" disabled selected>1차 결재자 선택</option>';
          app2.innerHTML = '<option value="" disabled selected>2차 결재자 선택</option>';
          app2Wrap.style.display = 'block'; app2.required = true;
@@ -255,7 +255,7 @@
          approversData[wp]['팀장'].forEach(a => app2.add(new Option(a.name, a.email)));
          app2.add(new Option(headData.name, headData.email));
          app2.add(new Option(testUser.name, testUser.email));
-      } else if (pos === 'SE주임') {
+      } else if (pos === '주임') {
          app1.innerHTML = '<option value="" disabled selected>1차 결재자 선택</option>';
          app2.innerHTML = '<option value="" disabled selected>2차 결재자 선택</option>';
          app2Wrap.style.display = 'block'; app2.required = true;
@@ -266,7 +266,7 @@
          
          app2.add(new Option(headData.name, headData.email));
          app2.add(new Option(testUser.name, testUser.email));
-      } else if (pos === 'SE팀장') {
+      } else if (pos === '팀장') {
          app1.innerHTML = '';
          app2Wrap.style.display = 'none'; app2.required = false;
          app1.add(new Option(headData.name, headData.email));
