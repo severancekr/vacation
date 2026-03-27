@@ -14,6 +14,7 @@
     .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
     .form-header h2 { color: var(--primary-color); margin: 0; font-size: 20px; text-align: center; flex: 1; }
     .top-back-text { background: none; border: none; font-size: 22px; color: #64748b; cursor: pointer; padding: 0 10px 0 0; transition: 0.2s; font-weight: 900; }
+    .clear-storage-btn { background: none; border: none; font-size: 13px; color: var(--danger-color); cursor: pointer; font-weight: 700; padding: 0 0 0 10px; }
     
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 14px; color: #334155; }
@@ -58,7 +59,7 @@
         <div style="display:flex; flex-direction:column; align-items:center;">
           <h2 style="margin-bottom:2px;">결재 상신</h2><span style="color:#64748b; font-size:12px; font-weight:600;">휴가원 및 훈련계</span>
         </div>
-        <div style="width:22px;"></div>
+        <button type="button" class="clear-storage-btn" onclick="clearLocalStorage()">초기화</button>
       </div>
 
       <div class="workplace-group" style="margin-bottom: 10px;">
@@ -127,7 +128,7 @@
 
         <div class="form-group type-leave">
           <label class="required">4. 비상연락망 (H.P)</label>
-          <input type="text" id="contact6" class="save-state" placeholder="예: 010-1234-5678">
+          <input type="text" id="contact6" class="save-state" placeholder="예: 010-1234-5678" maxlength="13">
         </div>
 
         <div class="type-train">
@@ -235,6 +236,25 @@
     const headData = {name: '백만호 실장', email: 'vkorean@s-tec.co.kr,vkorean@naver.com'};
     const testUser = {name: '지사장', email: 'tjrghks22@s-tec.co.kr'};
 
+    // 연락처 하이픈 자동 입력 기능
+    document.getElementById('contact6').addEventListener('input', function(e) {
+      let val = this.value.replace(/[^0-9]/g, ''); 
+      let res = '';
+      if(val.length < 4) { res = val; } 
+      else if(val.length < 7) { res = val.substr(0,3) + '-' + val.substr(3); } 
+      else if(val.length < 11) { res = val.substr(0,3) + '-' + val.substr(3,3) + '-' + val.substr(6); } 
+      else { res = val.substr(0,3) + '-' + val.substr(3,4) + '-' + val.substr(7); }
+      this.value = res;
+    });
+
+    // 로컬 스토리지 데이터 초기화 함수 추가
+    function clearLocalStorage() {
+      if(confirm("자동 저장된 내 정보(성명, 사번 등)를 초기화하시겠습니까?")) {
+          document.querySelectorAll('.save-state').forEach(el => localStorage.removeItem('as_' + el.id));
+          location.reload();
+      }
+    }
+
     function updateApprovers() {
       const wp = document.getElementById('appWorkplace').value;
       const pos = document.getElementById('position6').value;
@@ -267,10 +287,15 @@
          app2.add(new Option(headData.name, headData.email));
          app2.add(new Option(testUser.name, testUser.email));
       } else if (pos === '팀장') {
-         app1.innerHTML = '';
-         app2Wrap.style.display = 'none'; app2.required = false;
+         app1.innerHTML = '<option value="" disabled selected>1차 결재자 선택</option>';
+         app2.innerHTML = '<option value="" disabled selected>2차 결재자 선택</option>';
+         app2Wrap.style.display = 'block'; app2.required = true;
+         
          app1.add(new Option(headData.name, headData.email));
          app1.add(new Option(testUser.name, testUser.email));
+         
+         app2.add(new Option(headData.name, headData.email));
+         app2.add(new Option(testUser.name, testUser.email));
       }
     }
 
@@ -377,7 +402,6 @@
       updateApprovers(); 
     });
 
-    // ★ 수정사항 6: 휴가 종류 라디오 버튼 클릭 시 하단 서약서 콤보박스 자동 변경 ★
     document.querySelectorAll('input[name="leaveType"]').forEach(radio => {
       radio.addEventListener('change', function() {
         const customInput = document.getElementById('customLeaveType');
@@ -425,10 +449,21 @@
         resolve(mCanvas.toDataURL('image/jpeg', 0.7));
     });
 
+    let phoneWarningCount = 0;
+
     document.getElementById('form6').addEventListener('submit', async function(e) { 
       e.preventDefault(); 
       document.getElementById('loadingOverlay').style.display = 'flex'; 
       
+      // 추가 4: 날짜 논리 검증 (종료일이 시작일보다 과거인지 체크)
+      const dateStartVal = new Date(document.getElementById('leaveStart6').value);
+      const dateEndVal = new Date(document.getElementById('leaveEnd6').value);
+      if (dateEndVal < dateStartVal) {
+          alert("종료일이 시작일보다 과거일 수 없습니다. 날짜를 다시 확인해주세요.");
+          document.getElementById('loadingOverlay').style.display = 'none';
+          return;
+      }
+
       try {
           const blankCanvas = document.createElement('canvas');
           blankCanvas.width = canvas.width; blankCanvas.height = canvas.height;
@@ -469,18 +504,30 @@
               finalType = checkedType ? checkedType.value : '기타';
               if (finalType === '기타') finalType = "기타(" + document.getElementById('customLeaveType').value + ")";
               finalTimeOrContact = document.getElementById('contact6').value;
+
+              const phoneRegex = /^01[0-9]-\d{3,4}-\d{4}$/;
+              if (!phoneRegex.test(finalTimeOrContact)) {
+                  if (phoneWarningCount < 2) {
+                      phoneWarningCount++;
+                      alert('비상연락망 번호 형식이 올바르지 않습니다.\n(예: 010-1234-5678)\n확인 후 다시 시도해주세요. (' + phoneWarningCount + '/2)');
+                      document.getElementById('loadingOverlay').style.display = 'none';
+                      return;
+                  }
+              }
           }
 
           const data = { 
             action: 'insert', sheetName: isTrain ? '훈련계' : '휴가원', uuid: Date.now().toString(36), 
             dept: document.getElementById('dept6').value, worker: document.getElementById('worker6').value, 
-            empId: document.getElementById('empId6').value, position: pos, workerEmail: document.getElementById('workerEmail6').value,
+            empId: "'" + document.getElementById('empId6').value,
+            position: pos, workerEmail: document.getElementById('workerEmail6').value,
             leaveType: finalType, leaveStart: document.getElementById('leaveStart6').value, leaveEnd: document.getElementById('leaveEnd6').value,
-            contact: finalTimeOrContact, leaveFormType: isTrain ? '훈련계' : document.getElementById('leaveFormType').value,
+            contact: isTrain ? finalTimeOrContact : "'" + finalTimeOrContact,
+            leaveFormType: isTrain ? '훈련계' : document.getElementById('leaveFormType').value,
             app1Email: app1.value || '', 
             app1Name: (app1.selectedIndex >= 0) ? app1.options[app1.selectedIndex].text : '',
-            app2Email: pos === 'SE팀장' ? '' : (app2.value || ''), 
-            app2Name: pos === 'SE팀장' ? '' : ((app2.selectedIndex >= 0) ? app2.options[app2.selectedIndex].text : ''),
+            app2Email: app2.value || '', 
+            app2Name: (app2.selectedIndex >= 0) ? app2.options[app2.selectedIndex].text : '',
             signData: signatureImage, certData: mergedCertData
           }; 
           
@@ -492,7 +539,7 @@
           
           alert(data.sheetName + ' 상신 완료!');
           document.getElementById('actionArea6').style.display = 'none'; document.getElementById('successArea6').style.display = 'block';
-          this.reset(); clearSignature();
+          this.reset(); clearSignature(); phoneWarningCount = 0; 
           
           const today = new Date();
           const d = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
