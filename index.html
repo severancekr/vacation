@@ -518,6 +518,7 @@
 
           const data = { 
             action: 'insert', sheetName: isTrain ? '훈련계' : '휴가원', uuid: Date.now().toString(36), 
+            appWorkplace: document.getElementById('appWorkplace').value,
             dept: document.getElementById('dept6').value, worker: document.getElementById('worker6').value, 
             empId: "'" + document.getElementById('empId6').value,
             position: pos, workerEmail: document.getElementById('workerEmail6').value,
